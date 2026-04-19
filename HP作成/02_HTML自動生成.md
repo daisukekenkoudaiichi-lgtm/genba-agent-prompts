@@ -1,113 +1,73 @@
-claude code "
-genba-agent-prompts/HP作成/02_HTML自動生成.md を改良してください。
+【実行前提】
+- セットアップ.md にクライアント情報が記載されていることを確認
+- 新規プロジェクトフォルダを自動作成する必要がある
 
-【改良内容】
-以下の内容をすべて含める：
+【ステップ0: 新フォルダ作成】
+1. セットアップ.md からクライアント名を抽出
+2. PROJECT_PATH = C:\Github\${CLIENT_NAME}-LP を生成
+3. 新フォルダを自動作成：mkdir -p "${PROJECT_PATH}"
+4. 初期ファイル構成を作成：
+   - ${PROJECT_PATH}/index.html
+   - ${PROJECT_PATH}/package.json
+   - ${PROJECT_PATH}/scripts/
+   - ${PROJECT_PATH}/assets/
+   - ${PROJECT_PATH}/docs/
+   - ${PROJECT_PATH}/root-files/
 
-# 02 — HTML自動生成 + フル構成自動化
+【ステップ1: クライアント情報抽出】
+セットアップ.md から以下を抽出してコンテキストに保持：
+- クライアント名
+- 業種・特徴
+- ターゲット層
+- USP（ユニークセリングポイント）
+- 参考サイト技術解析（HTML構造・CSS・色・レイアウト）
+- 最適セクション構成（ヒーロー・サービス・事例・CTAなど）
 
-## このプロンプトをコピペして使用
-
-\`\`\`
-以下をすべて自動生成してください。
-
-【参考ファイル】
-セットアップ.md（01で生成済み）の内容を読み込んでください。
-
-【作業内容】
-1. セットアップ.md の「クライアント情報」を抽出
-2. セットアップ.md の「参考サイト技術解析」を反映
-3. セットアップ.md の「最適セクション構成」を使用
-4. CLAUDE.md のペルソナに基づいて HTML 生成
-5. SKILL.md のデザイン規約に基づいて CSS 生成
-
-【デザイン要件】
-- SKILL.md で定義されたカラースキーム
-- モバイルファースト
-- Lighthouse 90+
-
-【コーディング規約】
-- 純粋な HTML / CSS / JS のみ
-- CSS は <style> タグ内に記述
-- 画像は unsplash またはプレースホルダー
-
-【自動生成ファイル一覧】
+【ステップ2: HTML自動生成】
+セットアップの内容を基に、以下を自動生成：
 
 ## 1. index.html
-すべてを 1ファイルにまとめて出力してください。
+- すべてを1ファイルにまとめて出力（完全自己完結型）
+- CLAUDE.md のペルソナを反映
+- SKILL.md のデザイン規約に準拠
+- モバイルファースト設計
+- Lighthouse 90+ 対応
+- SEO最適化済み
 
 ## 2. package.json
-\`\`\`json
-{
-  \"name\": \"[クライアント名]-lp\",
-  \"version\": \"1.0.0\",
-  \"scripts\": {
-    \"watch\": \"node scripts/watch.js\",
-    \"push\": \"node scripts/auto-push.js\"
-  }
-}
-\`\`\`
+- プロジェクト基本情報
+- 必要な dependencies 記載
+- scripts セクション：
+  - "dev": dev server 起動
+  - "build": production build
+  - "start": start server
+  - "push": auto-push スクリプト実行
 
 ## 3. scripts/ フォルダ
-- auto-push.js（yamaguti-LP と同じ仕様）
-- watch.js（yamaguti-LP と同じ仕様）
-- setup-[クライアント名]-command.sh（Bash エイリアス登録）
+### 3-1. auto-push.js
+- ${REFERENCE_LP} と同じ仕様
+- 自動で git add / commit / push
+- デプロイ前の自動テスト実行
+
+### 3-2. watch.js
+- ${REFERENCE_LP} と同じ仕様
+- ファイル変更を監視
+- Lighthouse スコア自動測定
+- SEO自動チェック
+
+### 3-3. setup-${CLIENT_NAME}-command.sh
+- Bash エイリアス登録スクリプト
+- ~/.bashrc に以下を追加：
+```bash
+  alias ${CLIENT_NAME}='function _${CLIENT_NAME}_agent() {
+    cd "${PROJECT_PATH}"
+    claude code "
+    CLAUDE.md + SKILL.md + progress.md + task.md + KNOWLEDGE.md を読み込んで
+    以下の修正を実行してください：
+    $*
+    【修正フロー】確認なし → 全て自動実行 → レポート表示
+    "
+  }; _${CLIENT_NAME}_agent'
+```
 
 ## 4. assets/ フォルダ構成
-\`\`\`
-assets/
-├── images/
-├── icons/
-└── logo/
-\`\`\`
-
-## 5. docs/ フォルダ
-- DEPLOYMENT.md
-- PERFORMANCE.md
-- SEO.md
-
-## 6. root ファイル
-- .gitignore
-- .gitattributes
-- README.md
-- KNOWLEDGE.md
-- progress.md
-- task.md
-- CHANGE_LOG.md（初期テンプレート）
-
-【参考】
-yamaguti-LP/ の構成をベースに、[クライアント名] でカスタマイズしてください。
-
-すべてのファイルを生成してください。
-\`\`\`
-
----
-
-## バリエーション
-
-### シンプル版（セクション最小化）
-
-\`\`\`
-シンプルな構成（FV → サービス → Contact のみ）で生成してください。
-\`\`\`
-
-### リッチ版（アニメーション重視）
-
-\`\`\`
-以下のアニメーションを追加してください：
-- パーティクル背景（FV）
-- カウントアップアニメーション（実績数値）
-- スムーススクロール
-- ハンバーガーメニュー（SP）
-\`\`\`
-
----
-
-## 実行後の確認
-
-- [ ] 全ファイルが生成されている
-- [ ] package.json に scripts が定義されている
-- [ ] スマホ表示が崩れていない
-- [ ] Lighthouse スコア 90+ 達成可能な構成か
-- [ ] GitHub push で自動デプロイできる構成か
-"
