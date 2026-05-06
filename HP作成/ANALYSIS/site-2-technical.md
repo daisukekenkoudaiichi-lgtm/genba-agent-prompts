@@ -1,66 +1,66 @@
-# screencapture-tamakinet-jp-2026-04-19-20_36_13.png (Site 2) - 技術仕様解析
+# screencapture-kiyomi-gr-jp-profile-2026-04-20-22_27_07.png (Site 2) - 技術仕様解析
 
 ## 基本情報
-- URL: https://fumiaki-kobayashi.jp/
-- 業種: 政治家公式サイト (衆議院議員の公式サイトであるため)
+- URL: https://www.kiyomi.gr.jp/
+- 業種: 政治活動、政治家公式サイト
 - 取得日: 2026-04-20
 
 ## 技術スタック推定
-- HTML 構造: HTML5 (<!DOCTYPE html>)。`head`内に多数の`meta`、`link`、`script`、`style`要素が詰め込まれている。IE9未満向けに条件付きコメントによるスクリプト（html5shiv, respond.js）の読み込みがある。
+- HTML 構造:
+    - HTML5 (DOCTYPE HTML) を採用。
+    - `lang="ja"` 指定あり。
+    - `<head>`内には `charset`, `title`, `keywords`, `description`, `format-detection`, `viewport`, `twitter:card`, `og:title`, `og:image`, `og:url`, `icon` といった包括的なメタ情報が設定されている。
+    - セマンティックなHTML5要素 (`<header>`, `<nav>`, `<h1>`, `<ul>`, `<li>`など) を使用。
+    - CSSやJavaScriptのパスに `/wp/wp-content/themes/kiyomi/` が含まれることから、WordPressがCMSとして利用されており、`kiyomi`というカスタムテーマが適用されていると推測される。
+    - IE9未満向けのHTML5shivが条件付きコメントで読み込まれている。
 - CSS 手法:
-    - CSSフレームワーク: Bootstrap (bootstrap.min.css)
-    - アイコンフォント: Font Awesome (font-awesome.min.css)
-    - 最適化プラグインによる結合/圧縮CSS: Autoptimize (autoptimize_single_...php)
-    - WordPressの機能によるインラインCSS: `wp-img-auto-sizes-contain-inline-css`, `wp-emoji-styles-inline-css`, `wp-block-library-inline-css` など。
+    - 外部スタイルシート (`style.css`) を使用。
+    - スタイルシートのパスにクエリパラメータ (`?2604`) を付与し、キャッシュ制御を行っている。
+    - HTML要素に `pc` および `sp` といったクラスが付与されていることから、メディアクエリと組み合わせてデスクトップ・モバイル表示の出し分けを行っていると推測される。
 - JavaScript 使用箇所:
-    - Webフォントローダー: `//fast.fonts.net/jsapi/...js` (defer属性付き)
-    - アクセス解析: Google Analytics (analytics.jsを読み込み、ページビューを送信)
-    - IE向けポリフィル: `html5shiv.min.js`, `respond.min.js` (条件付きコメント内)
-    - スパム対策: Google reCAPTCHA (api.jsをasync, defer属性付きで読み込み)
+    - Adobe Typekit (現在はAdobe Fonts) を利用したWebフォントの非同期読み込みスクリプトがインラインで記述されている。読み込み中のFOUC対策として `wf-loading`, `wf-inactive` クラスを動的に制御している。
+    - Facebook SDK (`connect.facebook.net/ja_JP/sdk.js`) を `async` および `defer` 属性付きで非同期・遅延読み込みしている。
+    - `id="js_btn"` や `class="btn_menu"`, `class="js_btn_close"` といった要素が存在するため、ハンバーガーメニューなどのインタラクティブなUIを制御するJavaScriptが別途実装されていると推測される。
+    - `class="fade"` は、リンククリック時のフェードアニメーションなどに使用される可能性がある。
 
 ## 実装観点メモ
 - パフォーマンス:
-    - JavaScriptは`defer`や`async`属性を活用して非同期に読み込まれており、レンダリングブロックを軽減しようとしている。
-    - CSSはAutoptimizeプラグインにより結合・圧縮されており、HTTPリクエスト数とファイルサイズの削減を図っている。
-    - キャッシュ制御の`meta`タグ（`Pragma`, `Cache-Control`）は存在するが、HTTPヘッダーによる制御が望ましい。
-    - WordPress由来のインラインCSS（特に`wp-block-library-inline-css`）が非常に長く、HTMLサイズを増大させ、キャッシュが効かないためパフォーマンスのボトルネックになり得る。
+    - CSSやFaviconなどのリソースにクエリパラメータでバージョン管理がされており、キャッシュバスターとして機能している。
+    - WebフォントとFacebook SDKが非同期読み込みされており、ページレンダリングへの影響を最小限に抑えようとしている。
+    - `pc` / `sp` クラスによる画像切り替えは、CSSで `display: none;` する場合、不要な画像も読み込んでしまう可能性があるため、`<picture>`要素や `srcset` 属性を使ったより最適化された画像配信が望ましい。
 - レスポンシブ:
-    - `meta name="viewport"`が設定されており、モバイルデバイスへの対応がされている。
-    - Bootstrapの採用により、基本的なレスポンシブデザインは考慮されていると推測される。
-    - ただし、`user-scalable=no`はユーザーによるズーム操作を制限するため、アクセシビリティの観点から推奨されない。
+    - `<meta name="viewport" content="width=device-width">` が設定されており、モバイルフレンドリーに対応。
+    - HTML内の `pc` および `sp` クラス、`<br class="sp">` や `<br class="pc">` の利用から、デバイス幅に応じたレイアウト・コンテンツ表示の切り替えを行っていることが明確。
+    - ハンバーガーメニュー (`btn_menu`) の実装が示唆されており、モバイルナビゲーションが考慮されている。
 - アクセシビリティ:
-    - `lang="ja"`が設定されており、言語指定が明確である。
-    - `title`と`description`が適切に設定されている。
-    - `user-scalable=no`は、視覚障がいを持つユーザーや特定の状況下でのユーザーにとって、重要なアクセシビリティの問題を引き起こす可能性がある。
+    - `lang="ja"` の指定により、スクリーンリーダーなどの支援技術に言語情報が適切に伝えられる。
+    - `<img>` タグのほとんどに適切な `alt` 属性が設定されており、画像の内容がテキストで提供されている。ただし、メニューアイコンのような装飾的な画像には `alt=""` だけでなく `aria-hidden="true"` を追加することで、スクリーンリーダーの読み上げをより明確に制御できる。
+    - `meta name="format-detection" content="telephone=no"` により、モバイル端末での電話番号の自動リンク化を防ぎ、誤タップを防止している。
 - SEO:
-    - `title`, `description`, `keywords` メタタグが設定されている。`keywords`は現代の主要検索エンジンではほとんど利用されない。
-    - `canonical`リンクが設定されており、重複コンテンツ対策がなされている。
-    - Open Graph (`og:`) および Twitter Cards (`twitter:`) メタタグが適切に設定されており、SNSでのシェア時の表示が最適化されている。
-    - `robots`メタタグで`max-image-preview:large`が指定されている。
-    - Google Analyticsが導入されており、アクセス状況の把握が可能。
-    - 構造化データ（JSON-LDなど）に関する記述はこのHTMLソースには見当たらない。
+    - `title`, `meta description`, `meta keywords` が適切に設定されている。
+    - `meta viewport` の設定により、モバイル検索結果での表示が最適化される。
+    - `og:title`, `og:image`, `og:url`, `twitter:card` が設定されており、ソーシャルメディアでの共有時にリッチな表示が可能。
+    - セマンティックなHTML5要素の使用は、検索エンジンがコンテンツ構造を理解するのに役立つ。
+    - WordPressを基盤としているため、CMSとしてのSEO機能やプラグインの恩恵も期待される。
 
 ## 再利用ポイント
 - 取り入れる実装:
-    - `defer`や`async`属性を用いたJavaScriptの非同期読み込み。
-    - Open GraphおよびTwitter CardsメタタグによるSNS共有時の表示最適化。
-    - `canonical`タグによるSEO上の重複コンテンツ対策。
-    - Font AwesomeやBootstrapなどの実績あるCSS/JSフレームワークの活用。
+    - `meta`タグによる包括的なSEO・SNS共有設定（`title`, `description`, OGP, Twitter Cards）。
+    - 外部スクリプト（Webフォント、SNS SDK）を `async` / `defer` で非同期・遅延読み込みし、ページレンダリングをブロックしない工夫。
+    - Webフォントの読み込み中のFOUC（Flash Of Unstyled Content）対策として、JavaScriptでクラスを制御する手法。
+    - `alt`属性を適切に設定し、画像コンテンツのアクセシビリティを確保する。
 - 改善して取り入れる実装:
-    - `user-scalable=no`の削除または再検討によるアクセシビリティ向上。
-    - `Pragma`や`Cache-Control`メタタグではなく、HTTPヘッダーによる強力かつ適切なキャッシュ制御の実装。
-    - WordPressのインラインCSS（特に`wp-block-library-inline-css`）の削減や、必要な部分のみを読み込む最適化。
-    - 可能であれば、IE9未満向けのスクリプト（html5shiv, respond.js）は現代のプロジェクトでは削除を検討。
+    - レスポンシブ画像対応: `pc`/`sp` クラスでのCSSによる画像切り替えではなく、`<picture>`要素や `srcset` 属性を活用して、デバイスに適したサイズの画像を効率的に配信する。
+    - HTML5shivの利用: 現代のブラウザ環境ではIE9未満のサポートが不要なケースが多いため、必要性を検討し、不要であれば削除してリソース削減を図る。
+    - 装飾的な画像に対する `alt` 属性: `alt=""` のみに留まらず、`aria-hidden="true"` を追加することで、スクリーンリーダーユーザーへの情報伝達をより明示的にする。
 - 採用しない実装:
-    - `user-scalable=no`はアクセシビリティ上の理由から基本的に採用しない。
-    - 現代のブラウザサポート要件によっては、レガシーIE向けのポリフィルは採用しない。
-    - `Pragma`や`Cache-Control`といった古いキャッシュ制御メタタグは、HTTPヘッダーによるより強力な制御を優先するため、採用しない。
+    - `meta keywords` タグ: 現在の主要な検索エンジンにおいてSEO効果が限定的であるため、新しいプロジェクトでは積極的に使用しない。
+    - 古いIE向け条件付きコメントによるスクリプト読み込み: 特殊な要件がない限り、現代のブラウザサポート基準では不要。
 
 ## その他特記事項
-- **WordPressの使用:** `wp_front/wp-content/themes/`や`wp-content/cache/autoptimize/`といったパスから、WordPressがCMSとして使用されていることが明確に推測できます。複数の`wp-`プレフィックスが付いたインラインCSSスタイルブロックもその証拠です。
-- **Autoptimizeプラグイン:** CSSのファイル名に`autoptimize_single_`が含まれていることから、WordPressのパフォーマンス最適化プラグイン「Autoptimize」が導入されていることがわかります。これにより、CSSファイルの結合や圧縮が行われています。
-- **Webフォントサービス:** `//fast.fonts.net/jsapi/...` のスクリプトから、Typekit（現Adobe Fonts）のようなWebフォントサービスを利用していると推測できます。
-- **レガシーブラウザ対応:** 条件付きコメントを用いてIE9未満のブラウザ向けにHTML5要素をサポートする`html5shiv`と、メディアクエリをサポートする`respond.js`を読み込んでいます。これは、かなり古い環境への配慮が見られます。
-- **キャッシュ制御メタタグ:** `<meta http-equiv="Pragma" content="no-cache">`と`<meta http-equiv="Cache-Control" content="no-cache">`が設定されています。これは開発時の一時的な設定としては理解できますが、本番環境で恒常的に設定すると、ブラウザキャッシュが機能せず、サイトの表示速度やサーバー負荷に悪影響を及ぼす可能性があります。
-- **インラインCSSの肥大化:** WordPressのブロックエディタ関連の`wp-block-library-inline-css`が非常に長大です。これはHTMLファイル自体のサイズを増大させ、初期ロード時にすべてのCSSが解析される必要があるため、クリティカルレンダリングパスに影響を与える可能性があります。利用しないブロックのCSSは削除するなどの最適化が望ましいです。
-- **RSSフィード:** `<link rel="alternate" type="application/rss+xml" href="https://fumiaki-kobayashi.jp/feed">`が設定されており、RSSリーダーによるコンテンツ購読に対応しています。
+- **WordPress基盤の活用**: CSSやJSのパス構造からWordPressが採用されていることが強く示唆される。これにより、コンテンツ管理の容易さ、豊富なプラグインによる機能拡張、テーマによるデザイン管理などのメリットを享受していると考えられる。
+- **積極的なSNS連携**: ヘッダー部分にTwitter, Facebook, YouTube, Instagram, LINEへのリンクが多数配置され、Facebook SDKも導入されていることから、多角的な情報発信とユーザーエンゲージメントを重視しているWeb戦略が伺える。
+- **Webフォントの導入**: Adobe Fonts（Typekit）を利用して独自のWebフォントを導入しており、これによりサイトのブランドイメージや視覚的な魅力を高めようとしている意図が見られる。読み込み処理もカスタムで記述されており、品質へのこだわりが感じられる。
+- **外部フォームサービスの活用**: 学生インターン募集にGoogle Forms、お問い合わせに外部の寄付管理システム (`cdp.bokinchan3.com`) を利用しており、専門的な機能を外部サービスにアウトソースすることで、開発・運用コストの削減とセキュリティ・機能の専門性を確保している。
+- **キャッシュバスターの徹底**: ファビコン、CSS、一部の画像ファイル (`icn_line.png`) にまでクエリパラメータによるバージョン指定が行われており、更新時のキャッシュ問題を回避し、常に最新のコンテンツをユーザーに届けようとする運用への配慮が見られる。
+- **PDF形式のプライバシーポリシー**: プライバシーポリシーがHTMLではなくPDF形式で提供されており、更新性やSEOの観点からは不利だが、法的文書の管理や配布の容易さ、印刷適性を優先している可能性がある。
